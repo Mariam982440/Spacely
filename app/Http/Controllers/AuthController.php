@@ -51,5 +51,37 @@ class AuthController extends Controller
         return $this->redirectByRole();
     }
 
+    public function showLogin()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            return back()->withErrors([
+                'email' => 'Email ou mot de passe incorrect.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        return $this->redirectByRole();
+    }
+
     
+
+    private function redirectByRole()
+    {
+        return match(auth()->user()->role->slug) {
+            'architect' => redirect()->route('architect.dashboard'),
+            'client'    => redirect()->route('client.dashboard'),
+            'admin'     => redirect()->route('admin.dashboard'),
+        };
+    }
 }
