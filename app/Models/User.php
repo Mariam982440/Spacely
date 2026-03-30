@@ -18,7 +18,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    
     protected $fillable = [
+        'role_id',
         'name',
         'email',
         'password',
@@ -45,5 +47,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function architectProfile()
+    {
+        return $this->hasOne(ArchitectProfile::class);
+    }
+
+    public function clientProfile()
+    {
+        return $this->hasOne(ClientProfile::class);
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        return $this->role->slug === $slug;
     }
 }
