@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\ArchitectProfile;
 use App\Models\ClientProfile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -25,12 +26,15 @@ class AuthController extends Controller
             'role'     => 'required|in:client,architect',
         ]);
 
-        $role = Role::where('slug', $request->role)->firstOrFail();
+        $role = Role::firstOrCreate(
+            ['slug' => $request->role],
+            ['name' => ucfirst($request->role)]
+        );
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => $request->password,
+            'name'     => trim($request->name),
+            'email'    => strtolower(trim($request->email)),
+            'password' => Hash::make($request->password),
             'role_id'  => $role->id,
         ]);
 
@@ -63,10 +67,27 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            return back()->withErrors([
-                'email' => 'Email ou mot de passe incorrect.',
-            ]);
+        $credentials = [
+            'email' => strtolower(trim($request->email)),
+            'password' => $request->password,
+        ];
+
+        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+            $user = User::where('email', $credentials['email'])->first();
+
+            // Migration de compatibilite pour les anciens comptes dont
+            // le mot de passe a pu etre enregistre en clair.
+            if ($user && $user->password === $request->password) {
+                $user->forceFill([
+                    'password' => Hash::make($request->password),
+                ])->save();
+
+                Auth::login($user, $request->boolean('remember'));
+            } else {
+                return back()->withErrors([
+                    'email' => 'Email ou mot de passe incorrect.',
+                ]);
+            }
         }
 
         $request->session()->regenerate();
