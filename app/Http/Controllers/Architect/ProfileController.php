@@ -7,5 +7,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
-    
+    public function show()
+    {
+        $profile = auth()->user()->architectProfile;
+
+        return view('architect.profile.show', compact('profile'));
+    }
 }
