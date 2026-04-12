@@ -67,4 +67,22 @@ class ProjectController extends Controller
             ->route('architect.projects.index')
             ->with('success', 'Projet publié avec succès.');
     }
+    public function show(Project $project)
+    {
+        $this->authorizeProject($project);
+
+        $project->load('tags', 'images');
+
+        return view('architect.projects.show', compact('project'));
+    }
+
+    public function edit(Project $project)
+    {
+        $this->authorizeProject($project);
+
+        $tags        = Tag::orderBy('name')->get();
+        $projectTags = $project->tags->pluck('id')->toArray();
+
+        return view('architect.projects.edit', compact('project', 'tags', 'projectTags'));
+    }
 }
