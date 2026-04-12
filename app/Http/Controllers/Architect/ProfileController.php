@@ -13,4 +13,10 @@ class ProfileController extends Controller
 
         return view('architect.profile.show', compact('profile'));
     }
+    public function edit()
+    {
+        $profile = auth()->user()->architectProfile;
+
+        return view('architect.profile.edit', compact('profile'));
+    }
 }
