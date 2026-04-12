@@ -122,4 +122,31 @@ class ProjectController extends Controller
             ->route('architect.projects.show', $project)
             ->with('success', 'Projet mis à jour avec succès.');
     }
+
+    public function destroy(Project $project)
+    {
+        $this->authorizeProject($project);
+
+        // Supprimer les images du storage
+        foreach ($project->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+        }
+
+        $project->delete();
+
+        return redirect()
+            ->route('architect.projects.index')
+            ->with('success', 'Projet supprimé.');
+    }
+
+    // sécurité 
+
+    private function authorizeProject(Project $project): void
+    {
+        $profileId = auth()->user()->architectProfile->id;
+
+        if ($project->architect_id !== $profileId) {
+            abort(403);
+        }
+    }
 }
