@@ -85,4 +85,41 @@ class ProjectController extends Controller
 
         return view('architect.projects.edit', compact('project', 'tags', 'projectTags'));
     }
+
+    public function update(Request $request, Project $project)
+    {
+        $this->authorizeProject($project);
+
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'required|string',
+            'tags'        => 'nullable|array',
+            'tags.*'      => 'exists:tags,id',
+            'images'      => 'nullable|array',
+            'images.*'    => 'image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        // mettre à jour les données
+        $project->update($request->only(['title', 'description']));
+
+        // synchroniser les tags
+        $project->tags()->sync($request->input('tags', []));
+
+        // ajouter les nouvelles images si envoyées
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('projects/images', 'public');
+
+                $project->images()->create([
+                    'image_path' => $path,
+                    'is_before'  => false,
+                    'is_after'   => false,
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('architect.projects.show', $project)
+            ->with('success', 'Projet mis à jour avec succès.');
+    }
 }
