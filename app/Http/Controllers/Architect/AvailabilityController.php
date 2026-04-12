@@ -71,4 +71,64 @@ class AvailabilityController extends Controller
 
         return back()->with('success', 'Disponibilité supprimée.');
     }
+
+    private function generateSlots(Availability $availability, int $durationMinutes): void
+    {
+        $dayMap = [
+            'monday'    => Carbon::MONDAY,
+            'tuesday'   => Carbon::TUESDAY,
+            'wednesday' => Carbon::WEDNESDAY,
+            'thursday'  => Carbon::THURSDAY,
+            'friday'    => Carbon::FRIDAY,
+            'saturday'  => Carbon::SATURDAY,
+            'sunday'    => Carbon::SUNDAY,
+        ];
+
+        $dayNumber = $dayMap[$availability->day_of_week];
+        $slots     = [];
+
+        // générer pour les 4 prochaines semaines
+        for ($week = 0; $week < 4; $week++) {
+
+            $date = Carbon::now()
+                ->next($dayNumber)
+                ->addWeeks($week);
+
+            $start = Carbon::parse(
+                $date->toDateString() . ' ' . $availability->start_time
+            );
+
+            $end = Carbon::parse(
+                $date->toDateString() . ' ' . $availability->end_time
+            );
+
+            // découper la plage en créneaux
+            while ($start->copy()->addMinutes($durationMinutes)->lte($end)) {
+                $slots[] = [
+                    'availability_id' => $availability->id,
+                    'start_at'        => $start->copy(),
+                    'end_at'          => $start->copy()->addMinutes($durationMinutes),
+                    'is_booked'       => false,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ];
+
+                $start->addMinutes($durationMinutes);
+            }
+        }
+
+        // Insérer tous les créneaux en une seule requête
+        TimeSlot::insert($slots);
+    }
+
+    // sécurité 
+
+    private function authorizeAvailability(Availability $availability): void
+    {
+        $profileId = auth()->user()->architectProfile->id;
+
+        if ($availability->architect_id !== $profileId) {
+            abort(403);
+        }
+    }
 }
