@@ -21,4 +21,10 @@ class ProjectController extends Controller
 
         return view('architect.projects.index', compact('projects'));
     }
+    public function create()
+    {
+        $tags = Tag::orderBy('name')->get();
+
+        return view('architect.projects.create', compact('tags'));
+    }
 }
