@@ -20,5 +20,18 @@ class QuoteController extends Controller
  
         return view('architect.quotes.index', compact('quotes'));
     }
-    
+    public function create(Booking $booking)
+    {
+        // vérifier que la réservation appartient à l'architecte
+        $this->authorizeBooking($booking);
+ 
+        // vérifier qu'il n'y a pas déjà un devis
+        if ($booking->quote) {
+            return redirect()
+                ->route('architect.quotes.index')
+                ->with('error', 'Un devis existe déjà pour cette réservation.');
+        }
+ 
+        return view('architect.quotes.create', compact('booking'));
+    }
 }
