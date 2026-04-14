@@ -53,6 +53,8 @@ class AuthController extends Controller
         Auth::login($user);
 
         return $this->redirectByRole();
+        // return redirect()->route('architect.');
+
     }
 
     public function showLogin()
@@ -92,7 +94,8 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return $this->redirectByRole();
+        return redirect()->route('architect.profile.show');
+
     }
 
     public function logout(Request $request)
@@ -107,7 +110,7 @@ class AuthController extends Controller
     private function redirectByRole()
     {
         return match(auth()->user()->role->slug) {
-            'architect' => redirect()->route('architect.dashboard'),
+            'architect' => redirect()->route('architect.profile.show'),
             'client'    => redirect()->route('client.dashboard'),
             'admin'     => redirect()->route('admin.dashboard'),
         };
