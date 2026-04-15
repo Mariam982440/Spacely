@@ -34,4 +34,36 @@ class QuoteController extends Controller
  
         return view('architect.quotes.create', compact('booking'));
     }
+    public function store(Request $request, Booking $booking)
+    {
+        $this->authorizeBooking($booking);
+ 
+        $request->validate([
+            'items'             => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity'    => 'required|integer|min:1',
+            'items.*.unit_price'  => 'required|numeric|min:0',
+            'tva'               => 'required|numeric|min:0|max:100',
+        ]);
+ 
+        // calculer les totaux
+        $totalHt = collect($request->items)->sum(function ($item) {
+            return $item['quantity'] * $item['unit_price'];
+        });
+ 
+        $tva      = $request->tva;
+        $totalTtc = $totalHt * (1 + $tva / 100);
+ 
+        // créer le devis
+        $quote = Quote::create([
+            'booking_id' => $booking->id,
+            'reference'  => 'QUO-' . strtoupper(Str::random(8)),
+            'total_ht'   => $totalHt,
+            'tva'        => $tva,
+            'total_ttc'  => $totalTtc,
+            'status'     => 'sent', // envoyé directement au client
+        ]);
+ 
+        
+    }
 }
