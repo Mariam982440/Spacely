@@ -72,5 +72,16 @@ class QuoteController extends Controller
                 'unit_price'  => $item['unit_price'],
             ]);
         }
+
+        // générer le PDF
+        $pdf  = Pdf::loadView('architect.quotes.pdf', compact('quote'));
+        $path = 'quotes/' . $quote->reference . '.pdf';
+        $pdf->save(storage_path('app/public/' . $path));
+ 
+        $quote->update(['pdf_path' => $path]);
+ 
+        return redirect()
+            ->route('architect.quotes.index')
+            ->with('success', 'Devis envoyé au client avec succès.');
     }
 }
