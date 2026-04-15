@@ -64,6 +64,13 @@ class QuoteController extends Controller
             'status'     => 'sent', // envoyé directement au client
         ]);
  
-        
+        // créer les lignes du devis
+        foreach ($request->items as $item) {
+            $quote->items()->create([
+                'description' => $item['description'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
+            ]);
+        }
     }
 }
