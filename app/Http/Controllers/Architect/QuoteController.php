@@ -84,4 +84,33 @@ class QuoteController extends Controller
             ->route('architect.quotes.index')
             ->with('success', 'Devis envoyé au client avec succès.');
     }
+
+    public function pdf(Quote $quote)
+    {
+        $this->authorizeQuote($quote);
+ 
+        $pdf = Pdf::loadView('architect.quotes.pdf', compact('quote'));
+ 
+        return $pdf->download('devis-' . $quote->reference . '.pdf');
+    }
+ 
+    // sécurité 
+ 
+    private function authorizeBooking(Booking $booking): void
+    {
+        $profileId = auth()->user()->architectProfile->id;
+ 
+        $belongs = $booking->timeSlot->availability->architect_id === $profileId;
+ 
+        if (!$belongs) abort(403);
+    }
+ 
+    private function authorizeQuote(Quote $quote): void
+    {
+        $profileId = auth()->user()->architectProfile->id;
+ 
+        $belongs = $quote->booking->timeSlot->availability->architect_id === $profileId;
+ 
+        if (!$belongs) abort(403);
+    }
 }
