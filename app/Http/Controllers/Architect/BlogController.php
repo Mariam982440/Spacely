@@ -17,5 +17,8 @@ class BlogController extends Controller
  
         return view('architect.blog.index', compact('posts'));
     }
-    
+    public function create()
+    {
+        return view('architect.blog.form');
+    }
 }
