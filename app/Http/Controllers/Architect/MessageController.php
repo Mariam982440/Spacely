@@ -51,4 +51,29 @@ class MessageController extends Controller
  
         return view('architect.messages.show', compact('messages', 'user'));
     }
+    public function store(StoreMessageRequest $request, User $user)
+    {
+        $message = Message::create([
+            'sender_id'   => auth()->id(),
+            'receiver_id' => $user->id,
+            'body'        => $request->body,
+        ]);
+ 
+        $message->load('sender');
+ 
+        // Diffuser le message en temps réel via Reverb
+        broadcast(new MessageSent($message))->toOthers();
+ 
+        // Si requête AJAX (fetch depuis JS) → retourner JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id'         => $message->id,
+                'body'       => $message->body,
+                'sender_id'  => $message->sender_id,
+                'created_at' => $message->created_at->format('H:i'),
+            ]);
+        }
+ 
+        return back();
+    }
 }
