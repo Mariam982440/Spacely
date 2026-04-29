@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Architect;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Architect\StoreProjectRequest;
+use App\Http\Requests\Architect\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\Tag;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
@@ -28,28 +29,19 @@ class ProjectController extends Controller
         return view('architect.projects.create', compact('tags'));
     }
 
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'required|string',
-            'tags'        => 'nullable|array',
-            'tags.*'      => 'exists:tags,id',
-            'images'      => 'required|array|min:1',
-            'images.*'    => 'image|mimes:jpg,jpeg,png,webp|max:4096',
-            'is_before'   => 'nullable|array',
-            'is_after'    => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         // créer le projet
         $project = auth()->user()->architectProfile->projects()->create([
-            'title'       => $request->title,
-            'description' => $request->description,
+            'title'       => $validated['title'],
+            'description' => $validated['description'],
         ]);
 
         // attacher les tags
-        if ($request->has('tags')) {
-            $project->tags()->attach($request->tags);
+        if (!empty($validated['tags'])) {
+            $project->tags()->attach($validated['tags']);
         }
 
         // stocker les images
@@ -86,24 +78,20 @@ class ProjectController extends Controller
         return view('architect.projects.edit', compact('project', 'tags', 'projectTags'));
     }
 
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
         $this->authorizeProject($project);
 
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'required|string',
-            'tags'        => 'nullable|array',
-            'tags.*'      => 'exists:tags,id',
-            'images'      => 'nullable|array',
-            'images.*'    => 'image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
+        $validated = $request->validated();
 
         // mettre à jour les données
-        $project->update($request->only(['title', 'description']));
+        $project->update([
+            'title'       => $validated['title'],
+            'description' => $validated['description'],
+        ]);
 
         // synchroniser les tags
-        $project->tags()->sync($request->input('tags', []));
+        $project->tags()->sync($validated['tags'] ?? []);
 
         // ajouter les nouvelles images si envoyées
         if ($request->hasFile('images')) {

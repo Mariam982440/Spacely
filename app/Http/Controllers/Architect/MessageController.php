@@ -61,10 +61,10 @@ class MessageController extends Controller
  
         $message->load('sender');
  
-        // Diffuser le message en temps réel via Reverb
+        // diffuser le message en temps réel via Reverb
         broadcast(new MessageSent($message))->toOthers();
  
-        // Si requête AJAX (fetch depuis JS) → retourner JSON
+        // si requête AJAX (fetch depuis JS) - retourner JSON
         if ($request->expectsJson()) {
             return response()->json([
                 'id'         => $message->id,

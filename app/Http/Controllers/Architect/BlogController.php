@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Architect;
  
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Architect\StoreBlogPostRequest;
 use App\Models\BlogPost;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 class BlogController extends Controller
@@ -22,21 +22,16 @@ class BlogController extends Controller
         return view('architect.blog.form');
     }
 
-     public function store(Request $request)
+     public function store(StoreBlogPostRequest $request)
     {
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'content'     => 'required|string',
-            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
-            'status'      => 'required|in:draft,published',
-        ]);
+        $validated = $request->validated();
  
         $data = [
             'architect_id' => auth()->user()->architectProfile->id,
-            'title'        => $request->title,
-            'slug'         => Str::slug($request->title) . '-' . Str::random(5),
-            'content'      => $request->content,
-            'status'       => $request->status,
+            'title'        => $validated['title'],
+            'slug'         => Str::slug($validated['title']) . '-' . Str::random(5),
+            'content'      => $validated['content'],
+            'status'       => $validated['status'],
         ];
  
         if ($request->hasFile('cover_image')) {
@@ -57,21 +52,16 @@ class BlogController extends Controller
         return view('architect.blog.form', compact('post'));
     }
  
-    public function update(Request $request, BlogPost $post)
+    public function update(StoreBlogPostRequest $request, BlogPost $post)
     {
         $this->authorizePost($post);
  
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'content'     => 'required|string',
-            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
-            'status'      => 'required|in:draft,published',
-        ]);
+        $validated = $request->validated();
  
         $data = [
-            'title'   => $request->title,
-            'content' => $request->content,
-            'status'  => $request->status,
+            'title'   => $validated['title'],
+            'content' => $validated['content'],
+            'status'  => $validated['status'],
         ];
  
         if ($request->hasFile('cover_image')) {

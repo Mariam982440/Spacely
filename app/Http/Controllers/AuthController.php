@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
@@ -17,28 +19,23 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:8|confirmed',
-            'role'     => 'required|in:client,architect',
-        ]);
+        $validated = $request->validated();
 
         $role = Role::firstOrCreate(
-            ['slug' => $request->role],
-            ['name' => ucfirst($request->role)]
+            ['slug' => $validated['role']],
+            ['name' => ucfirst($validated['role'])]
         );
 
         $user = User::create([
-            'name'     => trim($request->name),
-            'email'    => strtolower(trim($request->email)),
-            'password' => Hash::make($request->password),
+            'name'     => trim($validated['name']),
+            'email'    => strtolower(trim($validated['email'])),
+            'password' => Hash::make($validated['password']),
             'role_id'  => $role->id,
         ]);
 
-        if ($request->role === 'architect') {
+        if ($validated['role'] === 'architect') {
             ArchitectProfile::create([
                 'user_id'          => $user->id,
                 'city'             => '',
@@ -62,16 +59,13 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
         $credentials = [
-            'email' => strtolower(trim($request->email)),
-            'password' => $request->password,
+            'email' => strtolower(trim($validated['email'])),
+            'password' => $validated['password'],
         ];
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -79,9 +73,9 @@ class AuthController extends Controller
 
             // Migration de compatibilite pour les anciens comptes dont
             // le mot de passe a pu etre enregistre en clair.
-            if ($user && $user->password === $request->password) {
+            if ($user && $user->password === $validated['password']) {
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
+                    'password' => Hash::make($validated['password']),
                 ])->save();
 
                 Auth::login($user, $request->boolean('remember'));
@@ -94,7 +88,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('architect.profile.show');
+        return $this->redirectByRole();
 
     }
 

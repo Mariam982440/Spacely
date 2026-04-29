@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Architect;
  
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Architect\StoreQuoteRequest;
 use App\Models\Booking;
 use App\Models\Quote;
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
  
 class QuoteController extends Controller
 {
@@ -34,24 +36,18 @@ class QuoteController extends Controller
  
         return view('architect.quotes.create', compact('booking'));
     }
-    public function store(Request $request, Booking $booking)
+    public function store(StoreQuoteRequest $request, Booking $booking)
     {
         $this->authorizeBooking($booking);
  
-        $request->validate([
-            'items'             => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.quantity'    => 'required|integer|min:1',
-            'items.*.unit_price'  => 'required|numeric|min:0',
-            'tva'               => 'required|numeric|min:0|max:100',
-        ]);
+        $validated = $request->validated();
  
         // calculer les totaux
-        $totalHt = collect($request->items)->sum(function ($item) {
+        $totalHt = collect($validated['items'])->sum(function ($item) {
             return $item['quantity'] * $item['unit_price'];
         });
  
-        $tva      = $request->tva;
+        $tva      = $validated['tva'];
         $totalTtc = $totalHt * (1 + $tva / 100);
  
         // créer le devis
@@ -65,7 +61,7 @@ class QuoteController extends Controller
         ]);
  
         // créer les lignes du devis
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $quote->items()->create([
                 'description' => $item['description'],
                 'quantity'    => $item['quantity'],
