@@ -15,7 +15,7 @@ class IsClient
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role->slug !== 'client') {
+        if (!auth()->check() || !auth()->user()->isClient()) {
             abort(403);
         }
 

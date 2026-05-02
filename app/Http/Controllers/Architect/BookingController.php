@@ -31,7 +31,7 @@ class BookingController extends Controller
     {
         $this->authorizeBooking($booking);
 
-        if (!$booking->status === BookingStatus::Pending) {
+        if ($booking->status !== BookingStatus::Pending) {
             return back()->withErrors(['error' => 'Cette réservation ne peut pas être confirmée.']);
         }
 

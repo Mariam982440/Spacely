@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\QuoteStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +19,12 @@ class Quote extends Model
         'total_ht',
         'tva',
         'total_ttc',
-        'status', // draft, sent, accepted, rejected
+        'status',
         'pdf_path',
+    ];
+
+    protected $casts = [
+        'status' => QuoteStatus::class,
     ];
 
     

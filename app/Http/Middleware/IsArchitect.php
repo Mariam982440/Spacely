@@ -15,7 +15,7 @@ class IsArchitect
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role->slug !== 'architect') {
+        if (!auth()->check() || !auth()->user()->isArchitect()) {
                 abort(403);
         }
 

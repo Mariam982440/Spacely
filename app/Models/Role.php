@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
     protected $fillable = ['name', 'slug'];
+
+    protected $casts = [
+        'slug' => UserRole::class,
+    ];
 
     public function users()
     {

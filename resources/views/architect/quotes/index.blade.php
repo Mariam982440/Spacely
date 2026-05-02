@@ -52,6 +52,7 @@
                             {{-- Statut --}}
                             <td class="px-6 py-4">
                                 @php
+                                    $status = $quote->status->value;
                                     $badges = [
                                         'draft'    => 'bg-stone-100 text-stone-500',
                                         'sent'     => 'bg-blue-100 text-blue-700',
@@ -66,8 +67,8 @@
                                     ];
                                 @endphp
                                 <span class="text-xs font-medium px-2.5 py-1 rounded-full
-                                             {{ $badges[$quote->status] ?? 'bg-stone-100 text-stone-500' }}">
-                                    {{ $labels[$quote->status] ?? $quote->status }}
+                                             {{ $badges[$status] ?? 'bg-stone-100 text-stone-500' }}">
+                                    {{ $quote->status->label() ?? $labels[$status] ?? $status }}
                                 </span>
                             </td>
 

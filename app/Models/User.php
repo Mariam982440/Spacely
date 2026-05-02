@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -64,8 +65,25 @@ class User extends Authenticatable
         return $this->hasOne(ClientProfile::class);
     }
 
-    public function hasRole(string $slug): bool
+    public function hasRole(string|UserRole $role): bool
     {
-        return $this->role->slug === $slug;
+        $role = $role instanceof UserRole ? $role : UserRole::tryFrom($role);
+
+        return $role !== null && $this->role?->slug === $role;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(UserRole::Admin);
+    }
+
+    public function isArchitect(): bool
+    {
+        return $this->hasRole(UserRole::Architect);
+    }
+
+    public function isClient(): bool
+    {
+        return $this->hasRole(UserRole::Client);
     }
 }

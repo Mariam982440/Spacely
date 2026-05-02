@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Http\Request;
@@ -49,9 +50,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return $this->redirectByRole();
-        // return redirect()->route('architect.');
-
+        return redirect($this->dashboardByRole($user));
     }
 
     public function showLogin()
@@ -64,15 +63,15 @@ class AuthController extends Controller
         $validated = $request->validated();
 
         $credentials = [
-            'email' => strtolower(trim($validated['email'])),
+            'email'    => strtolower(trim($validated['email'])),
             'password' => $validated['password'],
         ];
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+
+            // Compatibilité anciens comptes mot de passe en clair
             $user = User::where('email', $credentials['email'])->first();
 
-            // Migration de compatibilite pour les anciens comptes dont
-            // le mot de passe a pu etre enregistre en clair.
             if ($user && $user->password === $validated['password']) {
                 $user->forceFill([
                     'password' => Hash::make($validated['password']),
@@ -88,8 +87,12 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return $this->redirectByRole();
-
+        // redirect()->intended() redirige vers la page voulue avant expiration.
+        // Si cette page n'existe plus ou n'a jamais été définie,
+        // on tombe sur le dashboard du rôle en fallback.
+        return redirect()->intended(
+            $this->dashboardByRole(auth()->user())
+        );
     }
 
     public function logout(Request $request)
@@ -101,12 +104,19 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    private function redirectByRole()
+    // ── URL de fallback par rôle ───────────────────────────
+    // On retourne une URL string et non un redirect() object.
+    // Comme ça redirect()->intended($url) garde le contrôle :
+    // si une "intended URL" existe en session → il l'utilise,
+    // sinon il utilise notre $url comme fallback.
+
+    private function dashboardByRole(User $user): string
     {
-        return match(auth()->user()->role->slug) {
-            'architect' => redirect()->route('architect.profile.show'),
-            'client'    => redirect()->route('client.dashboard'),
-            'admin'     => redirect()->route('admin.dashboard'),
+        return match($user->role->slug) {
+            UserRole::Architect => route('architect.profile.show'),
+            UserRole::Client    => route('client.dashboard'),
+            UserRole::Admin     => route('admin.dashboard'),
+            default     => route('login'),
         };
     }
 }
