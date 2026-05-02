@@ -7,6 +7,7 @@ use App\Http\Requests\Architect\StoreQuoteRequest;
 use App\Models\Booking;
 use App\Models\Quote;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
  
 class QuoteController extends Controller
@@ -72,7 +73,7 @@ class QuoteController extends Controller
         // générer le PDF
         $pdf  = Pdf::loadView('architect.quotes.pdf', compact('quote'));
         $path = 'quotes/' . $quote->reference . '.pdf';
-        $pdf->save(storage_path('app/public/' . $path));
+        Storage::disk('public')->put($path, $pdf->output());
  
         $quote->update(['pdf_path' => $path]);
  
