@@ -77,4 +77,23 @@ Route::middleware(['auth', 'is.architect'])->prefix('architect')->name('architec
         Route::put('/bookings/{booking}/confirm',      [BookingController::class, 'confirm'])->name('bookings.confirm');
         Route::put('/bookings/{booking}/cancel',       [BookingController::class, 'cancel'])->name('bookings.cancel');
 
+        // Devis
+        Route::get('/quotes',                         [QuoteController::class, 'index'])->name('quotes.index');
+        Route::get('/bookings/{booking}/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
+        Route::post('/bookings/{booking}/quotes',     [QuoteController::class, 'store'])->name('quotes.store');
+        Route::get('/quotes/{quote}/pdf',             [QuoteController::class, 'pdf'])->name('quotes.pdf');
+
+        // Blog
+        Route::get('/blog',                 [BlogController::class, 'index'])->name('blog.index');
+        Route::get('/blog/create',          [BlogController::class, 'create'])->name('blog.create');
+        Route::post('/blog',                [BlogController::class, 'store'])->name('blog.store');
+        Route::get('/blog/{post}/edit',     [BlogController::class, 'edit'])->name('blog.edit');
+        Route::put('/blog/{post}',          [BlogController::class, 'update'])->name('blog.update');
+        Route::delete('/blog/{post}',       [BlogController::class, 'destroy'])->name('blog.destroy');
+
+        // Messages
+        Route::get('/messages',             [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{user}',      [MessageController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{user}',     [MessageController::class, 'store'])->name('messages.store');
+
     });

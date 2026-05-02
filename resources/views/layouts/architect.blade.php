@@ -48,17 +48,17 @@
                               {{ request()->routeIs('architect.bookings.*') ? 'bg-green-100 text-green-800 font-medium' : 'text-stone-500 hover:bg-stone-100' }}">
                         Réservations
                     </a>
-                    <a href="#"
+                    <a href="{{ route('architect.quotes.index') }}"
                        class="px-3 py-1.5 rounded-lg text-sm transition
                               {{ request()->routeIs('architect.quotes.*') ? 'bg-green-100 text-green-800 font-medium' : 'text-stone-500 hover:bg-stone-100' }}">
                         Devis
                     </a>
-                    <a href="#"
+                    <a href="{{ route('architect.blog.index') }}"
                        class="px-3 py-1.5 rounded-lg text-sm transition
                               {{ request()->routeIs('architect.blog.*') ? 'bg-green-100 text-green-800 font-medium' : 'text-stone-500 hover:bg-stone-100' }}">
                         Blog
                     </a>
-                    <a href="#"
+                    <a href="{{ route('architect.messages.index') }}"
                        class="px-3 py-1.5 rounded-lg text-sm transition
                               {{ request()->routeIs('architect.messages.*') ? 'bg-green-100 text-green-800 font-medium' : 'text-stone-500 hover:bg-stone-100' }}">
                         Messages
@@ -115,5 +115,6 @@
         @yield('content')
     </main>
 
+    @stack('scripts')
 </body>
 </html>

@@ -19,7 +19,7 @@ class BlogController extends Controller
     }
     public function create()
     {
-        return view('architect.blog.form');
+        return view('architect.blog.create');
     }
 
      public function store(StoreBlogPostRequest $request)
@@ -49,7 +49,7 @@ class BlogController extends Controller
     {
         $this->authorizePost($post);
  
-        return view('architect.blog.form', compact('post'));
+        return view('architect.blog.create', compact('post'));
     }
  
     public function update(StoreBlogPostRequest $request, BlogPost $post)

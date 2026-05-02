@@ -29,7 +29,7 @@ class MessageController extends Controller
             ->where('is_read', false)
             ->count();
  
-        return view('architect.messages.index', compact('conversations', 'unreadCount'));
+        return view('architect.message.index', compact('conversations', 'unreadCount'));
     }
     public function show(User $user)
     {
@@ -49,7 +49,7 @@ class MessageController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
  
-        return view('architect.messages.show', compact('messages', 'user'));
+        return view('architect.message.show', compact('messages', 'user'));
     }
     public function store(StoreMessageRequest $request, User $user)
     {
