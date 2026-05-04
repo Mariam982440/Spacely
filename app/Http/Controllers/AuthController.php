@@ -36,7 +36,7 @@ class AuthController extends Controller
             'role_id'  => $role->id,
         ]);
 
-        if ($validated['role'] === 'architect') {
+        if ($validated['role'] === UserRole::Architect->value) {
             ArchitectProfile::create([
                 'user_id'          => $user->id,
                 'city'             => '',
@@ -50,7 +50,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect($this->dashboardByRole($user));
+        return redirect($this->dashboardUrl($user));
     }
 
     public function showLogin()
@@ -60,39 +60,20 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $validated = $request->validated();
-
         $credentials = [
-            'email'    => strtolower(trim($validated['email'])),
-            'password' => $validated['password'],
+            'email'    => strtolower(trim($request->email)),
+            'password' => $request->password,
         ];
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-
-            // Compatibilité anciens comptes mot de passe en clair
-            $user = User::where('email', $credentials['email'])->first();
-
-            if ($user && $user->password === $validated['password']) {
-                $user->forceFill([
-                    'password' => Hash::make($validated['password']),
-                ])->save();
-
-                Auth::login($user, $request->boolean('remember'));
-            } else {
-                return back()->withErrors([
-                    'email' => 'Email ou mot de passe incorrect.',
-                ]);
-            }
+            return back()->withErrors([
+                'email' => 'Email ou mot de passe incorrect.',
+            ]);
         }
 
         $request->session()->regenerate();
 
-        // redirect()->intended() redirige vers la page voulue avant expiration.
-        // Si cette page n'existe plus ou n'a jamais été définie,
-        // on tombe sur le dashboard du rôle en fallback.
-        return redirect()->intended(
-            $this->dashboardByRole(auth()->user())
-        );
+        return redirect()->intended($this->dashboardUrl(auth()->user()));
     }
 
     public function logout(Request $request)
@@ -104,19 +85,8 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    // ── URL de fallback par rôle ───────────────────────────
-    // On retourne une URL string et non un redirect() object.
-    // Comme ça redirect()->intended($url) garde le contrôle :
-    // si une "intended URL" existe en session → il l'utilise,
-    // sinon il utilise notre $url comme fallback.
-
-    private function dashboardByRole(User $user): string
+    private function dashboardUrl(User $user): string
     {
-        return match($user->role->slug) {
-            UserRole::Architect => route('architect.profile.show'),
-            UserRole::Client    => route('client.dashboard'),
-            UserRole::Admin     => route('admin.dashboard'),
-            default     => route('login'),
-        };
+        return route($user->dashboardRouteName());
     }
 }
