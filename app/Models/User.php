@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -85,5 +84,15 @@ class User extends Authenticatable
     public function isClient(): bool
     {
         return $this->hasRole(UserRole::Client);
+    }
+
+    public function dashboardRouteName(): string
+    {
+        return match ($this->role?->slug) {
+            UserRole::Architect => 'architect.dashboard',
+            UserRole::Client => 'client.dashboard',
+            UserRole::Admin => 'admin.dashboard',
+            default => 'login',
+        };
     }
 }
