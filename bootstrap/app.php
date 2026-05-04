@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'is.client'    => \App\Http\Middleware\IsClient::class,
             'is.admin'     => \App\Http\Middleware\IsAdmin::class,
         ]);
+
+        $middleware->redirectUsersTo(function ($request) {
+            return $request->user()
+                ? route($request->user()->dashboardRouteName())
+                : route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
