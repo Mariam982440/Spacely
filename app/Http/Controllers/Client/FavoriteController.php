@@ -8,46 +8,82 @@ use App\Models\Favorite;
 
 class FavoriteController extends Controller
 {
+    // Moodboard — seulement les projets
     public function index()
     {
         $favorites = Favorite::where('user_id', auth()->id())
-            ->with('favoritable')
+            ->where('favoritable_type', 'App\Models\Project')
+            ->with('favoritable.images', 'favoritable.tags')
             ->latest()
             ->paginate(12);
 
         return view('client.favorites.index', compact('favorites'));
     }
 
+    // Articles favoris — dans la section blog
+    public function blogFavorites()
+    {
+        $favorites = Favorite::where('user_id', auth()->id())
+            ->where('favoritable_type', 'App\Models\BlogPost')
+            ->with('favoritable.architectProfile.user')
+            ->latest()
+            ->paginate(9);
+
+        return view('client.blog.favorites', compact('favorites'));
+    }
+
     public function store(StoreFavoriteRequest $request)
     {
-        // eviter les doublons
-        $alreadyExists = Favorite::where('user_id', auth()->id())
-            ->where('favoritable_id', $request->favoritable_id)
-            ->where('favoritable_type', $request->favoritable_type)
+        $validated = $request->validated();
+
+        // Si _remove → supprimer
+        if ($request->boolean('_remove')) {
+            Favorite::where('user_id', auth()->id())
+                ->where('favoritable_id', $validated['favoritable_id'])
+                ->where('favoritable_type', $validated['favoritable_type'])
+                ->delete();
+
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'removed']);
+            }
+
+            return back()->with('success', 'Retiré de vos favoris.');
+        }
+
+        // Éviter les doublons
+        $exists = Favorite::where('user_id', auth()->id())
+            ->where('favoritable_id', $validated['favoritable_id'])
+            ->where('favoritable_type', $validated['favoritable_type'])
             ->exists();
 
-        if ($alreadyExists) {
-            return back()->with('error', 'Cet élément est déjà dans votre moodboard.');
+        if ($exists) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'already_exists'], 422);
+            }
+            return back()->with('error', 'Déjà dans vos favoris.');
         }
 
         Favorite::create([
             'user_id'          => auth()->id(),
-            'favoritable_id'   => $request->favoritable_id,
-            'favoritable_type' => $request->favoritable_type,
+            'favoritable_id'   => $validated['favoritable_id'],
+            'favoritable_type' => $validated['favoritable_type'],
         ]);
 
-        return back()->with('success', 'Ajouté à votre moodboard.');
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'added']);
+        }
+
+        return back()->with('success', 'Ajouté à vos favoris.');
     }
 
     public function destroy(Favorite $favorite)
     {
-        // vérifier que le favori appartient au client connecté
         if ($favorite->user_id !== auth()->id()) {
             abort(403);
         }
 
         $favorite->delete();
 
-        return back()->with('success', 'Retiré du moodboard.');
+        return back()->with('success', 'Retiré de vos favoris.');
     }
 }
