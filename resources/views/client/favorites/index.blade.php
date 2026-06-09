@@ -6,29 +6,26 @@
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="font-serif text-2xl font-semibold text-stone-900">Mon Moodboard</h1>
-            <p class="text-stone-400 text-sm mt-1">{{ $favorites->total() }} élément(s) sauvegardé(s)</p>
+            <p class="text-stone-400 text-sm mt-1">
+                {{ $favorites->total() }} projet(s) sauvegardé(s)
+            </p>
         </div>
     </div>
 
     @if($favorites->count())
         <div class="grid grid-cols-3 gap-5 mb-8">
             @foreach($favorites as $favorite)
-                @php $item = $favorite->favoritable; @endphp
-
-                @if(!$item) @continue @endif
+                @php $project = $favorite->favoritable; @endphp
+                @if(!$project) @continue @endif
 
                 <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden
                             shadow-sm hover:shadow-md transition group">
 
                     {{-- Image --}}
                     <div class="aspect-video bg-stone-100 overflow-hidden relative">
-                        @if($item instanceof \App\Models\Project && $item->images->first())
-                            <img src="{{ Storage::url($item->images->first()->image_path) }}"
-                                 alt="{{ $item->title }}"
-                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        @elseif($item instanceof \App\Models\BlogPost && $item->cover_image)
-                            <img src="{{ Storage::url($item->cover_image) }}"
-                                 alt="{{ $item->title }}"
+                        @if($project->images->first())
+                            <img src="{{ Storage::url($project->images->first()->image_path) }}"
+                                 alt="{{ $project->title }}"
                                  class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-green-50">
@@ -40,34 +37,30 @@
                                 </svg>
                             </div>
                         @endif
-
-                        {{-- Badge type --}}
-                        <span class="absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium
-                                     {{ $item instanceof \App\Models\Project
-                                        ? 'bg-green-700 text-white'
-                                        : 'bg-stone-700 text-white' }}">
-                            {{ $item instanceof \App\Models\Project ? 'Projet' : 'Article' }}
-                        </span>
                     </div>
 
                     <div class="p-4">
                         <p class="font-medium text-stone-900 text-sm mb-1 truncate">
-                            {{ $item->title }}
+                            {{ $project->title }}
                         </p>
+
+                        {{-- Tags --}}
+                        @if($project->tags->count())
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                @foreach($project->tags->take(3) as $tag)
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                                        {{ $tag->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+
                         <p class="text-xs text-stone-400 mb-3">
                             Ajouté {{ $favorite->created_at->diffForHumans() }}
                         </p>
 
                         <div class="flex items-center justify-between pt-3 border-t border-stone-100">
-                            @if($item instanceof \App\Models\BlogPost)
-                                <a href="{{ route('client.blog.show', $item) }}"
-                                   class="text-xs text-green-600 hover:text-green-800 font-medium transition">
-                                    Lire l'article →
-                                </a>
-                            @else
-                                <span class="text-xs text-stone-400">Projet</span>
-                            @endif
-
+                            <span class="text-xs text-stone-400">Projet</span>
                             <form method="POST"
                                   action="{{ route('client.favorites.destroy', $favorite) }}"
                                   onsubmit="return confirm('Retirer du moodboard ?')">
@@ -95,7 +88,7 @@
             </div>
             <h3 class="font-serif text-lg text-stone-700 mb-2">Votre moodboard est vide</h3>
             <p class="text-stone-400 text-sm mb-6">
-                Ajoutez des projets et articles qui vous inspirent depuis les profils des architectes.
+                Ajoutez des projets qui vous inspirent depuis les profils des architectes.
             </p>
             <a href="{{ route('client.architects.index') }}"
                class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-700
