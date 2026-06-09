@@ -15,6 +15,7 @@ class QuoteController extends Controller
             ->with([
                 'booking.timeSlot.availability.architectProfile.user',
                 'items',
+                'payment',
             ])
             ->latest()
             ->paginate(10);
@@ -26,7 +27,9 @@ class QuoteController extends Controller
     {
         $this->authorizeQuote($quote);
 
-        if ($quote->status !== 'sent') {
+        $status = $quote->status instanceof \BackedEnum ? $quote->status->value : $quote->status;
+
+        if ($status !== 'sent') {
             return back()->with('error', 'Ce devis ne peut pas être accepté.');
         }
 
@@ -39,7 +42,9 @@ class QuoteController extends Controller
     {
         $this->authorizeQuote($quote);
 
-        if ($quote->status !== 'sent') {
+        $status = $quote->status instanceof \BackedEnum ? $quote->status->value : $quote->status;
+
+        if ($status !== 'sent') {
             return back()->with('error', 'Ce devis ne peut pas être refusé.');
         }
 

@@ -27,6 +27,7 @@
                         'accepted' => 'Accepté',
                         'rejected' => 'Refusé',
                     ];
+                    $isPaid = $quote->payment && $quote->payment->status === 'completed';
                 @endphp
 
                 <div class="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
@@ -122,6 +123,22 @@
                                     Refuser
                                 </button>
                             </form>
+                        </div>
+                    @elseif($status === 'accepted')
+                        <div class="flex items-center gap-3 px-6 py-4 bg-stone-50 border-t border-stone-100">
+                            @if($isPaid)
+                                <p class="text-sm text-green-700 flex-1 font-medium">Paiement effectue.</p>
+                                <a href="{{ route('client.payments.success', $quote) }}"
+                                   class="px-4 py-2 border border-stone-200 text-stone-600 text-sm font-medium rounded-xl hover:bg-white transition">
+                                    Voir le recu
+                                </a>
+                            @else
+                                <p class="text-sm text-stone-500 flex-1">Devis accepte. Vous pouvez maintenant proceder au paiement.</p>
+                                <a href="{{ route('client.payments.show', $quote) }}"
+                                   class="px-4 py-2 bg-green-700 text-white text-sm font-medium rounded-xl hover:bg-green-800 transition">
+                                    Payer
+                                </a>
+                            @endif
                         </div>
                     @endif
 
