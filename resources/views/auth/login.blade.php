@@ -34,6 +34,7 @@
             }
         }
     </script>
+    @include('partials.dark-ui-theme')
 </head>
 
 <body class="font-sans bg-beige text-charcoal min-h-screen flex flex-col relative overflow-x-hidden">
@@ -47,7 +48,10 @@
     <!-- Navbar -->
     <nav class="relative z-10 flex items-center justify-between px-6 md:px-12 py-5 bg-beige/85 backdrop-blur-md border-b border-beige-dark">
         <a href="{{ url('/') }}" class="font-serif text-2xl font-semibold text-sage tracking-tight">Spacely</a>
-        <a href="{{ route('register') }}" class="text-xs md:text-sm font-normal text-gray-500 hover:text-sage transition-colors">Créer un compte</a>
+        <div class="flex items-center gap-3">
+            @include('partials.theme-toggle')
+            <a href="{{ route('register') }}" class="text-xs md:text-sm font-normal text-gray-500 hover:text-sage transition-colors">Créer un compte</a>
+        </div>
     </nav>
 
     <!-- Main -->

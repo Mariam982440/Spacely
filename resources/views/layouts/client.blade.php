@@ -10,6 +10,7 @@
         body { font-family: 'DM Sans', sans-serif; }
         .font-serif { font-family: 'Playfair Display', serif; }
     </style>
+    @include('partials.dark-ui-theme')
 </head>
 <body class="bg-stone-50 text-stone-800 min-h-screen">
 
@@ -71,6 +72,7 @@
 
             {{-- Avatar + déconnexion --}}
             <div class="flex items-center gap-3">
+                @include('partials.theme-toggle')
                 <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center
                             text-green-800 text-sm font-medium border border-stone-200">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -117,5 +119,6 @@
         @yield('content')
     </main>
 
+    @stack('scripts')
 </body>
 </html>
