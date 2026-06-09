@@ -1,70 +1,115 @@
 @extends('layouts.client')
-@section('title', 'Blog')
+@section('title', $post->title)
 
 @section('content')
 
-    <div class="mb-8">
-        <h1 class="font-serif text-2xl font-semibold text-stone-900">Blog</h1>
-        <p class="text-stone-400 text-sm mt-1">Conseils et inspirations en décoration intérieure</p>
-    </div>
+    <div class="max-w-3xl mx-auto">
 
-    @if($posts->count())
-        <div class="grid grid-cols-3 gap-5 mb-8">
-            @foreach($posts as $post)
-                <a href="{{ route('client.blog.show', $post) }}"
-                   class="bg-white border border-stone-200 rounded-2xl overflow-hidden
-                          shadow-sm hover:shadow-md transition group block">
+        <a href="{{ route('client.blog.index') }}"
+           class="inline-flex items-center gap-2 text-sm text-stone-400
+                  hover:text-stone-600 transition mb-6">
+            ← Retour au blog
+        </a>
 
-                    {{-- Image couverture --}}
-                    <div class="aspect-video bg-stone-100 overflow-hidden">
-                        @if($post->cover_image)
-                            <img src="{{ Storage::url($post->cover_image) }}"
-                                 alt="{{ $post->title }}"
-                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center bg-green-50">
-                                <svg class="w-10 h-10 text-green-300" fill="none" stroke="currentColor"
-                                     stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                        @endif
+        @if($post->cover_image)
+            <div class="aspect-video rounded-2xl overflow-hidden bg-stone-100 mb-8">
+                <img src="{{ Storage::url($post->cover_image) }}"
+                     alt="{{ $post->title }}"
+                     class="w-full h-full object-cover">
+            </div>
+        @endif
+
+        <div class="mb-8">
+            <h1 class="font-serif text-3xl font-semibold text-stone-900 leading-tight mb-4">
+                {{ $post->title }}
+            </h1>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center
+                                justify-center text-green-800 text-sm font-medium">
+                        {{ strtoupper(substr($post->architectProfile->user->name, 0, 1)) }}
                     </div>
-
-                    <div class="p-5">
-                        <h3 class="font-medium text-stone-900 leading-snug mb-2
-                                   group-hover:text-green-700 transition line-clamp-2">
-                            {{ $post->title }}
-                        </h3>
-                        <p class="text-stone-400 text-sm line-clamp-2 leading-relaxed mb-4 font-light">
-                            {{ Str::limit(strip_tags($post->content), 100) }}
+                    <div>
+                        <p class="text-sm font-medium text-stone-700">
+                            {{ $post->architectProfile->user->name }}
                         </p>
-                        <div class="flex items-center justify-between pt-3 border-t border-stone-100">
-                            <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center
-                                            justify-center text-green-800 text-xs font-medium">
-                                    {{ strtoupper(substr($post->architectProfile->user->name, 0, 1)) }}
-                                </div>
-                                <span class="text-xs text-stone-500">
-                                    {{ $post->architectProfile->user->name }}
-                                </span>
-                            </div>
-                            <span class="text-xs text-stone-400">
-                                {{ $post->created_at->diffForHumans() }}
-                            </span>
-                        </div>
+                        <p class="text-xs text-stone-400">{{ $post->architectProfile->city }}</p>
                     </div>
-                </a>
-            @endforeach
+                </div>
+                <span class="text-stone-300">·</span>
+                <span class="text-sm text-stone-400">
+                    {{ $post->created_at->locale('fr')->isoFormat('D MMMM YYYY') }}
+                </span>
+            </div>
         </div>
 
-        {{ $posts->links() }}
-
-    @else
-        <div class="bg-white border border-stone-200 rounded-2xl p-16 text-center shadow-sm">
-            <h3 class="font-serif text-lg text-stone-700 mb-2">Aucun article publié</h3>
-            <p class="text-stone-400 text-sm">Revenez bientôt.</p>
+        <div class="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm mb-8">
+            <div class="text-stone-600 leading-relaxed text-sm font-light">
+                {!! nl2br(e($post->content)) !!}
+            </div>
         </div>
-    @endif
+
+        <div class="flex items-center gap-3 mb-10">
+
+            {{-- Ajouter au moodboard --}}
+            <form method="POST" action="{{ route('client.favorites.store') }}">
+                @csrf
+                <input type="hidden" name="favoritable_id" value="{{ $post->id }}">
+                <input type="hidden" name="favoritable_type" value="App\Models\BlogPost">
+                <button type="submit"
+                        class="flex items-center gap-2 px-4 py-2 border border-stone-200
+                               text-stone-600 text-sm rounded-xl hover:bg-stone-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                    Sauvegarder dans mon moodboard
+                </button>
+            </form>
+
+            <a href="{{ route('client.messages.show', $post->architectProfile->user) }}"
+               class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white
+                      text-sm rounded-xl hover:bg-green-800 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                Contacter {{ $post->architectProfile->user->name }}
+            </a>
+        </div>
+
+        @if($related->count())
+            <div>
+                <p class="text-xs font-medium tracking-widest text-stone-400 uppercase mb-4">
+                    Du même architecte
+                </p>
+                <div class="grid grid-cols-3 gap-4">
+                    @foreach($related as $relatedPost)
+                        <a href="{{ route('client.blog.show', $relatedPost) }}"
+                           class="bg-white border border-stone-200 rounded-xl overflow-hidden
+                                  shadow-sm hover:shadow-md transition group block">
+                            <div class="aspect-video bg-stone-100 overflow-hidden">
+                                @if($relatedPost->cover_image)
+                                    <img src="{{ Storage::url($relatedPost->cover_image) }}"
+                                         alt="{{ $relatedPost->title }}"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition">
+                                @else
+                                    <div class="w-full h-full bg-green-50"></div>
+                                @endif
+                            </div>
+                            <div class="p-3">
+                                <p class="text-sm font-medium text-stone-800 line-clamp-2
+                                          group-hover:text-green-700 transition">
+                                    {{ $relatedPost->title }}
+                                </p>
+                                <p class="text-xs text-stone-400 mt-1">
+                                    {{ $relatedPost->created_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+    </div>
 
 @endsection
