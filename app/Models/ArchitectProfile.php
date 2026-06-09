@@ -15,7 +15,9 @@ class ArchitectProfile extends Model
         'experience_years',
         'is_verified',
         'profile_picture',
+        'cover_photo',
     ];
+
     protected $casts = [
         'is_verified' => 'boolean',
     ];
@@ -39,5 +41,4 @@ class ArchitectProfile extends Model
     {
         return $this->hasMany(BlogPost::class, 'architect_id');
     }
-
 }
