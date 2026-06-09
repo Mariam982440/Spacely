@@ -16,6 +16,9 @@ use App\Http\Controllers\Client\QuoteController as ClientQuoteController;
 use App\Http\Controllers\Client\MessageController as ClientMessageController;
 use App\Http\Controllers\Client\FavoriteController;
 use App\Http\Controllers\Client\BlogController as ClientBlogController;
+use App\Http\Controllers\Client\PaymentController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ArchitectController as AdminArchitectController;
 
 // ── Page d'accueil ────────────────────────────────────────
 Route::get('/', function () {
@@ -119,13 +122,19 @@ Route::middleware(['auth', 'is.client'])
         Route::post('/messages/{user}',  [ClientMessageController::class, 'store'])->name('messages.store');
 
         // Moodboard
-        Route::get('/favorites',                  [FavoriteController::class, 'index'])->name('favorites.index');
-        Route::post('/favorites',                 [FavoriteController::class, 'store'])->name('favorites.store');
-        Route::delete('/favorites/{favorite}',    [FavoriteController::class, 'destroy'])->name('favorites.destroy');
-
+        // Moodboard — projets uniquement
+        Route::get('/favorites',               [FavoriteController::class, 'index'])->name('favorites.index');
+        Route::post('/favorites',              [FavoriteController::class, 'store'])->name('favorites.store');
+        Route::delete('/favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
+        
         // Blog
-        Route::get('/blog',        [ClientBlogController::class, 'index'])->name('blog.index');
-        Route::get('/blog/{post}', [ClientBlogController::class, 'show'])->name('blog.show');
+        Route::get('/blog',                    [ClientBlogController::class, 'index'])->name('blog.index');
+        Route::get('/blog/saved',              [FavoriteController::class, 'blogFavorites'])->name('blog.favorites');
+        Route::get('/blog/{post}',             [ClientBlogController::class, 'show'])->name('blog.show');
+
+        Route::get('/quotes/{quote}/pay',     [PaymentController::class, 'show'])->name('payments.show');
+        Route::post('/quotes/{quote}/pay',    [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/quotes/{quote}/success', [PaymentController::class, 'success'])->name('payments.success');
     });
 
 // ── Espace Admin ──────────────────────────────────────────
@@ -133,5 +142,10 @@ Route::middleware(['auth', 'is.admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/architects', [AdminArchitectController::class, 'index'])->name('architects.index');
+        Route::get('/architects/{architect}', [AdminArchitectController::class, 'show'])->name('architects.show');
+        Route::put('/architects/{architect}/approve', [AdminArchitectController::class, 'approve'])->name('architects.approve');
+        Route::put('/architects/{architect}/suspend', [AdminArchitectController::class, 'suspend'])->name('architects.suspend');
     });
