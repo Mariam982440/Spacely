@@ -14,8 +14,20 @@ class Payment extends Model
         'quote_id',
         'amount',
         'transaction_id', 
+        'stripe_payment_intent_id',
+        'stripe_charge_id',
+        'currency',
+        'payment_method',
         'status', // pending, completed, failed
+        'paid_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'paid_at' => 'datetime',
+        ];
+    }
 
     public function quote(): BelongsTo
     {
