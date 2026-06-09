@@ -3,9 +3,18 @@
 
 @section('content')
 
-    <div class="mb-8">
-        <h1 class="font-serif text-2xl font-semibold text-stone-900">Blog</h1>
-        <p class="text-stone-400 text-sm mt-1">Conseils et inspirations en décoration intérieure</p>
+    {{-- ── Onglets ── --}}
+    <div class="flex items-center gap-1 mb-8 border-b border-stone-200">
+        <a href="{{ route('client.blog.index') }}"
+           class="px-4 py-3 text-sm font-medium text-green-700
+                  border-b-2 border-green-700 transition">
+            Tous les articles
+        </a>
+        <a href="{{ route('client.blog.favorites') }}"
+           class="px-4 py-3 text-sm font-medium text-stone-500
+                  hover:text-stone-800 border-b-2 border-transparent hover:border-stone-300 transition">
+            Mes articles sauvegardés
+        </a>
     </div>
 
     @if($posts->count())
